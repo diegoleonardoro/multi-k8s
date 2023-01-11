@@ -1,52 +1,34 @@
 version: "3"
 services:
-  postgres:
-    image: "postgres:latest"
-    environment:
-      - POSTGRES_PASSWORD=postgres_password
-  redis:
-    image: "redis:latest"
-  nginx:
-    depends_on:
-      - api
-      - client
-    restart: always
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./nginx
-    ports:
-      - "3050:80"
-  api:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./server
-    volumes:
-      - /app/node_modules
-      - ./server:/app
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - PGUSER=postgres
-      - PGHOST=postgres
-      - PGDATABASE=postgres
-      - PGPASSWORD=postgres_password
-      - PGPORT=5432
   client:
+    image: "diegoleoro/multi-client-10-14"
+    mem_limit: 128m
+    hostname: client
+  server:
+    image: "diegoleoro/multi-server-10-14"
+    mem_limit: 128m
+    hostname: api
     environment:
-      - WDS_SOCKET_PORT=0
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./client
-    volumes:
-      - /app/node_modules
-      - ./client:/app
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+      - PGUSER=$PGUSER
+      - PGHOST=$PGHOST
+      - PGDATABASE=$PGDATABASE
+      - PGPASSWORD=$PGPASSWORD
+      - PGPORT=$PGPORT
   worker:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./worker
-    volumes:
-      - /app/node_modules
-      - ./worker:/app
+    image: "diegoleoro/multi-worker-10-14"
+    mem_limit: 128m
+    hostname: worker
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+  nginx:
+    image: "diegoleoro/multi-nginx-10-14"
+    mem_limit: 128m
+    hostname: nginx
+    ports:
+      - "80:80" # to expose traffic to our group of containers, we need to open up a port in the nginx service
+
+      # we are saying 'open up the port 80 on the machine that is hosting all of our containers and map that to port 80 inside of the container, which is the default port that nginx listens to inside of the container '
+
