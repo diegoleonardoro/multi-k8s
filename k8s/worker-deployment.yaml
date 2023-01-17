@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-deployment
+spec:
+  replicas: 1 # meaning we are only creating 1 container out of this config file 
+  selector: 
+    matchLabels: 
+      component: worker
+  template:
+    metadata:
+      labels:
+        component: worker
+    spec:
+      containers:
+        - name: worker
+          image: diegoleoro/multi-worker-10-14
+          env:
+            - name: REDIS_HOST
+              value: redis-cluster-ip-service  # used for this container to reach out and connect to the Redis container
+              # redis-cluster-ip-service is the name that we gave redis clustet ip service
+            - name: REDIS_PORT
+              value: "6379"  # default Redis port 'targetPort: 6379' inside the Redis cluster ip service 
+            
+
+  # we do not need to set a port for this pods because in our application there is no other element that has to access it. we do not need to have requests going into this pod, so we do not need a service for this service either. 
+

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      component: web  # meaning the component (element) of our application that this Deployment will be managing is called web
+  template:
+    metadata:
+      labels: # this is how the Deployment will find the pods that it is supposed to mange
+        component: web
+    spec: # section that will customize the exact behavior of each of the pods that gets created from this deployment 
+      containers:
+        - name: client
+          image: diegoleoro/multi-client #image over in docker hub 
+          ports:
+            - containerPort: 3000 # container that we will open inside each copy of this pod

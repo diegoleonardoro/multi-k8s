@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      volumes: # this section is what sets up the request on the pod to reach out to kubernetes and say that it needs some time of long term storage that meets all the requirements that laid out inside of the persistent volume claim database-persistent-volume-claim
+        - name: postgres-storage
+          persistentVolumeClaim: 
+            claimName: database-persistent-volume-claim # name of the claim that we just put together in the other file 
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432 # default port for postgres
+          volumeMounts: #  assigns the storage that we defined in the claim for use of the containers that are inside of our pod
+            - name: postgres-storage # same as the volume name
+              mountPath: /var/lib/postgresql/data # whatever the container stores in this folder reference will be stored inside of our volume
+              # we will use the data directory that postgres uses for storing data on the hard drive
+              subPath: postgres # means that any data inside of the container that gets stored in the previous folder is going to be sotored in a folder called "postgres" inside of the actual persistent volume claim  (this is very specific to postgres)
+          env:
+            - name: POSTGRES_PASSWORD # here we are overriding the default password that the postgre image would use to connect to postgres. 
+              # this env varible will be consumed by the postgres docker image
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD # key that we want to reference inside of the secret
+
+              
+

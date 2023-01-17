@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers: 
+        - name: server 
+          image: diegoleoro/multi-server-10-14
+          ports:
+            - containerPort: 5000
+          env: 
+            - name: REDIS_HOST
+              value: redis-cluster-ip-service  # used for this container to reach out and connect to the Redis container
+              # redis-cluster-ip-service is the name that we gave redis clustet ip service
+            - name: REDIS_PORT
+              value: "6379"  # default Redis port 'targetPort: 6379' inside the Redis cluster ip service
+            - name: PGUSER
+              value: postgres # default postgres user
+            - name: PGHOST
+              value: postgres-cluster-ip-service # used for this container to reach out and connect to the Postgres container
+              # postgres-cluster-ip-service is the name that we gave redis clustet ip service
+            - name: PGPORT
+              value: "5432"  # default Postgres port 'targetPort: 5432' inside the Postgres cluster ip service
+            - name: PGDATABASE
+              value: postgres  # we are using the default postgres database of postgres
+            - name: PGPASSWORD # this is an arbitrary name of how the pg password will show up in the container
+              valueFrom: # means "get the value for this env variables from some configuration that we will add here"
+                 secretKeyRef:
+                  name: pgpassword # name of the secret that we want this environment variable to come from 
+                  key: PGPASSWORD # key that we gave to the secret. 

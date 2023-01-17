@@ -17,7 +17,7 @@ function App() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Hola bebe, como estas?
+            hola, mi amor, como eastas?
           </a>
           <Link to="/">Home</Link>
           <Link to="/otherpage">Other Page</Link>

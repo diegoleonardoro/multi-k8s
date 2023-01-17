@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+# UPDATE API
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations: # annotations are additional configuration options that are going to specify higher level configuraiton around the ingress object that it gets created
+    kubernetes.io/ingress.class: "nginx" # this is telling kubernetes that we want to create an ingress controller based on the nginx project
+    nginx.ingress.kubernetes.io/use-regex: "true" # this rule means that if we end up matching a route like "/api", after deciding to send it to the server, this configuration is going to make a rewrite on the request. It essentully will remove the "/api" part. This is so that we do not have to write "/api" on every route in the server.
+    # ADD ANNOTATION
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # UPDATE ANNOTATION
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /?(.*)
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:
+                # UPDATE SERVICE FIELDS
+                name: client-cluster-ip-service # name of the client cluster ip service 
+                port:
+                  number: 3000 # the client listens on port 3000
+          - path: /api/?(.*)
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:
+                # UPDATE SERVICE FIELDS
+                name: server-cluster-ip-service # name of the server cluster ip service 
+                port:
+                  number: 5000 # the server listens on port  5000
+
+
+# the rules section is saying that there are two possible paths that we can match traffic to. If anyone ever visits route "/<and anything else>" we will send them to the set of pods that are governed by the client Cluster IP Service. 
+# if a request comes in with leading route name of "/api" they will be sent to the set of ports that are governed by the server Cluster IP Service.
+
+# we do not need to specify the IP address of the servers inside of our cluster, we only refer to the name of the service and then nginx ingress will take it from there. 
+
