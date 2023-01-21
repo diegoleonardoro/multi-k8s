@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1 # here we are saying "reach out to the cert manager bucket of objects" as we want to create an issuer type object. We are able to do this because we installed Cert Manager in the Google Console using Helm.
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod # the purpose of this issuer is to tell our Cert Manager to reach out to the production version of LetsEncrypt 
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory # this is the server that Cert Managet should reach out to when it tries to establish this verification process 
+    email: "diegoleoro@gmail.com" # we do not really need to provide our email. LetsEncrypt asks to have our email for whatever purpose they want 
+    privateKeySecretRef: #behind the scence, when out kubernetes cluster communicates with LetsEncrypt, at some stage LetsEncrypt sends ober a little secret key that is tied to our record with LetsEncrypt, and it is used to decide how to respond when LetsEncrypt tries to access the randomly generated url whose requests we need to respond in order to prove that we own our url. We will never use this key  
+      name: letsencrypt-prod
+    solvers:
+      - http01: # this is basically saying that we want to do the HTTP process of obtaining a certificate. We need to specify this because there is another way other (DNS) than this HTTP process of getting the certificate.  
+          ingress:
+            class: nginx

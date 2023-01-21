@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1 # here we are saying "reach out to the cert manager bucket of objects" as we want to create a certificate type object. We are able to do this because we installed Cert Manager in the Google Console using Helm.
+ 
+kind: Certificate
+metadata: 
+  name: meetnewyorkcity-city-tls
+spec:
+  secretName: meetnewyorkcity-city # the secretName is specifying where out certificate should be stored after it is obtained by Cert Manager. This is the secret that is created as part of the certificate.
+  issuerRef: # this is a reference to the issuer that we set up in order to get our certificate. 
+    name: letsencrypt-prod # this is the name that we gave the issuer
+    kind: ClusterIssuer
+  commonName: meetnewyork.city # this the address that the certificate is good for
+  dnsNames: # this is the list of all the different domains that should be associated with the certificate. When we get back a certificate, it will be good the following domains:
+    - meetnewyork.city
+    - www.meetnewyork.city
