@@ -9,9 +9,44 @@ metadata:
     # ADD ANNOTATION
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     # UPDATE ANNOTATION
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # this configuration is going to inform our Ingress Service that we are going to be making use of a LetsEncrypt certificate. This will make a change to the nginx server and it is goint to tell it that it should be expecting a certificate from "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # this will make sure that the nginx server forces users to always make use of HTTPS traffic. 
+
+    
 spec:
+  tls: # this tells nginx that it should be serving up HTTPS traffic and also tell where it can get our certificate from 
+    - hosts: # a list of different hosts that the users can connect on 
+        - meetnewyork.city
+        - www.meetnewyork.city
+      secretName: meetnewyorkcity-city # name of the secret that we had stored out certificate in
+
   rules:
-    - http:
+    - host: meetnewyork.city # this is saying that if someone comes to meetnewyork.city, here are the set of rules that we want to apply to that request. 
+      http:
+        paths:
+          - path: /?(.*)
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:
+                # UPDATE SERVICE FIELDS
+                name: client-cluster-ip-service # name of the client cluster ip service 
+                port:
+                  number: 3000 # the client listens on port 3000
+          - path: /api/?(.*)
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:
+                # UPDATE SERVICE FIELDS
+                name: server-cluster-ip-service # name of the server cluster ip service 
+                port:
+                  number: 5000 # the server listens on port  5000
+
+    - host: www.meetnewyork.city # we have to create two sets of rules one for meetnewyork.city and another one for www.meetnewyork.city
+      http:
         paths:
           - path: /?(.*)
             # UPDATE PATH
